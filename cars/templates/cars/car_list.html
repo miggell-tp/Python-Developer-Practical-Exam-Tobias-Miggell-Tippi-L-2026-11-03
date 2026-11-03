@@ -84,6 +84,17 @@
                 {% if page_obj.has_next %}
                     <a href="?color={{ selected_color|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
                 {% endif %}
+                
+                <form method="get" action="{% url 'cars:list' %}">
+                    {% if selected_color %}
+                        <input type="hidden" name="color" value="{{ selected_color }}">
+                    {% endif %}
+                    <label for="jump-page">Go to page</label>
+                    <input id="jump-page" name="page" type="number"
+                        min="1" max="{{ paginator.num_pages }}" step="1"
+                        value="{{ page_obj.number }}" required>
+                    <button type="submit">Go</button>
+                </form>
             </nav>
         {% endif %}
     </section>

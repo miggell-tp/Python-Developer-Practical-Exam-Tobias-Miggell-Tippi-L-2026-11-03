@@ -241,3 +241,15 @@ body {
     gap: 12px;
     margin-top: 20px;
 }
+
+.ledger-pagination form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ledger-pagination input[type="number"] {
+    width: 6rem;
+    font-variant-numeric: tabular-nums;
+}
