@@ -5,6 +5,8 @@ from django.views.generic import CreateView, DeleteView, FormView, ListView, Upd
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 
+from django.db.models import Count
+
 from .forms import CarForm, CarMoveForm
 from .models import Car
 from .ordering import move_car
@@ -34,19 +36,18 @@ class CarListView(ListView):
         selected_color = self.request.GET.get("color", "").strip().lower()
 
         context["selected_color"] = selected_color
+        top_colors = (
+            Car.objects.values("color")
+            .annotate(count=Count("pk"))
+            .order_by("-count", "color")[:3]
+        )
         context["quick_filters"] = [
             {
-                "label": label,
-                "value": color,
-                "count": Car.objects.filter(color=color).count(),
+                "label": row["color"].capitalize(),
+                "value": row["color"],
+                "count": row["count"],
             }
-            for label, color in (
-                ("Blue", "blue"),
-                ("Red", "red"),
-                ("Silver", "silver"),
-                ("White", "white"),
-                ("Black", "black"),
-            )
+            for row in top_colors
         ]
         return context
 
