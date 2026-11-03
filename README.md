@@ -1,10 +1,10 @@
 # Car Ledger
 
-Car Ledger is a Django and SQLite application for managing an ordered inventory of 100,000 cars. You can add, edit, delete, filter, and reorder cars from the browser.
+My submission for the Valens Research Python practical exam. It’s a Django app for managing an ordered list of cars in SQLite. The included database has 100,000 sample cars, so you can try the app as soon as it starts.
 
-## Run locally
+## Run it locally
 
-Open PowerShell in the repository folder. With Python 3.14 installed, run:
+From the repository folder in PowerShell, with Python 3.14 installed:
 
 ```powershell
 python -m venv .venv
@@ -13,64 +13,50 @@ python -m venv .venv
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-Open [Car Ledger](http://127.0.0.1:8000/). The included `db.sqlite3` contains sample inventory data. To fill a fresh database to 100,000 cars, run:
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
-```powershell
-.\.venv\Scripts\python.exe manage.py seed_cars
-```
+To try a move, click **Move** next to a car and enter the ID of the car it should go in front of. Use the first car’s ID to move to the front, or leave the field blank to move to the end. A color filter changes which cars you see. The move still applies to the full list.
 
-The command preserves existing cars. Use `--total 60` to populate a smaller inventory for local testing.
+To populate a fresh database, run `.\.venv\Scripts\python.exe manage.py seed_cars`. The command adds enough sample cars to reach 100,000 and leaves existing cars in place. Use `--total 60` if you want a smaller dataset in a fresh database.
 
-## Use the inventory
+## Why I used spaced order keys
 
-- **Add car** appends a car to the list. **Edit** changes its name or color and preserves its position.
-- **Filter by color** accepts a full color name. The filter keeps the matching cars in their original relative order. Each page shows up to 25 cars.
-- **Move** takes the ID of the car that should follow the selected car. Enter the first car's ID to move to the front, or leave the field blank to move to the end. Moves apply to the full inventory, including when a filter is active.
-- **Delete** opens a confirmation page before removing the car.
+I gave each car an integer `order_key` and left a gap of 1,000,000 between newly appended cars. Suppose two cars have keys `100` and `200`. To move another car between them, I can give it key `150`. The move updates one row. Moving a car before itself or its immediate successor updates zero rows.
 
-## Ordering and performance
+Repeated moves into the same gap can eventually use up the available integers. When that happens, the app spaces out the whole list again, then finishes the move in the same transaction. That makes a rebalance more expensive than a regular move. SQLite allows one writer at a time, so the app starts an immediate transaction before it reads the keys it needs to change.
 
-Cars have unique integer order keys. New cars are spaced 1,000,000 keys apart. A typical move finds the destination and its predecessor, then writes a key between them. It updates one car row. Moving a car before itself or leaving it in its current position updates zero rows.
+The list shows 25 cars per page. I used Django’s built-in pagination for straightforward numbered pages. It uses an offset, so later pages can take more work for SQLite to retrieve.
 
-When there is no integer left between neighboring keys, the application reassigns spaced keys to the full list inside the same transaction, then finishes the move. This takes more work but preserves the existing relative order during reassignment. SQLite uses immediate transactions for these writes so concurrent writers take turns before reading the order keys.
+## Database schema
 
-The unique order-key index supports ordered reads. The `(color, order_key)` index supports exact color filters in list order. Django uses offset pagination, so later pages can cost more to retrieve than early pages even though each response displays only 25 rows.
+The inventory uses one table, `cars_car`, with one row per car and no foreign keys.
 
-## Verify the app
+- `id` is the primary key.
+- `name` stores the car name, up to 100 characters.
+- `color` stores the color name, up to 30 characters.
+- `order_key` is a unique integer that determines where the car appears in the list.
+
+The inventory uses one application table with one row per car. It has no foreign keys.
+
+| Key or index | What it does |
+| --- | --- |
+| Primary key on `id` | Identifies the same car after an edit or a move. |
+| Unique index on `order_key` | Gives each car a distinct position and supports reading the full list in order. |
+| `car_color_order_idx` on `(color, order_key)` | Lets SQLite find cars of a given color and read them in list order. I confirmed that SQLite used it for the blue filter with `QuerySet.explain()`. |
+
+### Normalization
+
+- **1NF** — Each row holds one car, and each field holds a single value.
+- **2NF** — Both candidate keys, `id` and `order_key`, are single columns, so there are no partial dependencies.
+- **3NF** — `name` and `color` depend on the car’s key. Neither determines the other. The dependencies are `id → name, color, order_key` and `order_key → id, name, color`.
+
+I kept `color` as text because the app only needs a color name for display and filtering. The form trims whitespace and stores it in lowercase. Repeating `blue` across several rows simply records that several cars are blue. If colors had shared details such as paint codes, I’d put those in a `Color` table and let many cars reference one color.
+
+## Run the checks
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py test
 ```
 
-The tests cover CRUD, validation, missing records, color filtering across pages, moves, and exhausted gaps. Django runs them in a separate test database.
-
-## Database schema
-
-The inventory uses one application table, `cars_car`. Each row represents one car. There are no foreign keys or relationships between application entities.
-
-```mermaid
-erDiagram
-    cars_car {
-        integer id PK
-        varchar name "Up to 100 characters"
-        varchar color "Up to 30 characters"
-        bigint order_key UK "Unique position key"
-    }
-```
-
-| Index or constraint | Purpose |
-| --- | --- |
-| Primary key on `id` | Identifies a car even when its name, color, or position changes. |
-| Unique index on `order_key` | Enforces one key per car and supports reading the full inventory in order. |
-| `car_color_order_idx` on `(color, order_key)` | Supports exact color filtering with results already in inventory order. |
-
-### Normalization
-
-- **1NF.** Each field contains one value. A car has one name, one color, and one ordering key. The table has no repeating columns or lists inside a field.
-- **2NF.** Both candidate keys, `id` and `order_key`, consist of one column. A non-key field cannot depend on only part of either key.
-- **3NF.** The non-key attributes `name` and `color` describe the car and do not determine each other. There are no attributes such as a color description or manufacturer address that depend on a non-key attribute.
-
-The functional dependencies include `id → name, color, order_key` and `order_key → id, name, color`. The order key uniquely identifies a row at a given time, while `id` remains stable when a car moves.
-
-Color is stored directly because the app uses it as a single text value. The add and edit form trims whitespace and lowercases the value so `Blue` and `blue` are stored consistently. Repeating the word `blue` across cars is expected because each row records its own color. A separate `Color` table would make sense if the app needed a controlled palette with shared attributes such as display names or paint codes. It would introduce a one-to-many relationship from color to cars.
+The 12 tests cover CRUD, form validation, missing records, filtered pagination, and ordering, including what happens when a gap runs out. Django runs them against a separate test database.
