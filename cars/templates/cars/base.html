@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Car inventory{% endblock %} | Car Ledger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'cars/ledger.css' %}">
+</head>
+<body>
+    <div class="ledger-shell">
+        <aside class="ledger-sidebar">
+            <a class="ledger-brand" href="{% url 'cars:list' %}">
+                <svg width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="1.5"
+                     aria-hidden="true" focusable="false">
+                    <path d="M3 7h18M3 12h13M3 17h8"/>
+                </svg>
+                <span>Car Ledger</span>
+            </a>
+        </aside>
+
+        <main class="ledger-main" id="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

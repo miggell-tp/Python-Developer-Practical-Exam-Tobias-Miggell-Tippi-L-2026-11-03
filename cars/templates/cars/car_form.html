@@ -1,20 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if object %}Edit car{% else %}Add car{% endif %}</title>
-</head>
-<body>
-    <main>
-        <h1>{% if object %}Edit car{% else %}Add car{% endif %}</h1>
+{% extends "cars/base.html" %}
 
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Save car</button>
+{% block title %}{% if object %}Edit car{% else %}Add car{% endif %}{% endblock %}
+
+{% block content %}
+    <header class="ledger-heading">
+        <div>
+            <h1>{% if object %}Edit car{% else %}Add car{% endif %}</h1>
+            {% if object %}
+                <p>{{ object.name }} · ID {{ object.pk }}</p>
+            {% else %}
+                <p>New cars are added to the end of the inventory.</p>
+            {% endif %}
+        </div>
+    </header>
+
+    <form method="post" class="ledger-panel ledger-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="ledger-primary">Save car</button>
             <a href="{% url 'cars:list' %}">Cancel</a>
-        </form>
-    </main>
-</body>
-</html>
+        </div>
+    </form>
+{% endblock %}

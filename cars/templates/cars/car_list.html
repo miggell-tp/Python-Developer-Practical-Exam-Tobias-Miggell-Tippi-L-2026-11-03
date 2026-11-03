@@ -1,83 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Car Inventory</title>
-</head>
-<body>
-    <main>
-        <h1>Car Inventory</h1>
+{% extends "cars/base.html" %}
+
+{% block content %}
+    <header class="ledger-heading">
+        <div>
+            <h1>Car inventory</h1>
+            <p>{{ paginator.count }} car{{ paginator.count|pluralize }}{% if selected_color %} matching “{{ selected_color }}”{% endif %}</p>
+        </div>
+        <a class="ledger-primary" href="{% url 'cars:add' %}">Add car</a>
+    </header>
+
+    <nav class="quick-filters" aria-label="Quick color filters">
+        {% for filter in quick_filters %}
+            <a class="quick-filter" href="?color={{ filter.value|urlencode }}"
+               {% if selected_color == filter.value %}aria-current="true"{% endif %}>
+                <span>{{ filter.label }}</span>
+                <strong>{{ filter.count }}</strong>
+            </a>
+        {% endfor %}
+    </nav>
+
+    <section class="ledger-panel" aria-label="Ordered car list">
+        <form class="color-filter" method="get" action="{% url 'cars:list' %}">
+            <label for="color">Filter by color</label>
+            <input id="color" name="color" type="text" maxlength="30"
+                   value="{{ selected_color }}">
+            <button type="submit">Apply filter</button>
+            {% if selected_color %}
+                <a href="{% url 'cars:list' %}">Clear filter</a>
+            {% endif %}
+        </form>
+
         {% if messages %}
-            <ul role="status">
+            <ul class="ledger-messages" role="status">
                 {% for message in messages %}
                     <li>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
-        <p><a href="{% url 'cars:add' %}">Add car</a></p>
-        
-        <form method="get" action="{% url 'cars:list' %}">
-            <label for="color">Filter by color</label>
-            <input id="color" name="color" type="text" maxlength="30"
-                value="{{ request.GET.color|default:'' }}">
-            <button type="submit">Apply filter</button>
-            <a href="{% url 'cars:list' %}">Clear filter</a>
-        </form>
 
-        <table>
-            <thead>
-                <tr>
-                    <th scope="col">Car</th>
-                    <th scope="col">ID</th>
-                    <th scope="col">Color</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for car in cars %}
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Car table">
+            <table class="ledger-table">
+                <thead>
                     <tr>
-                        <th scope="row">{{ car.name }}</th>
-                        <td>{{ car.pk }}</td>
-                        <td>{{ car.color|capfirst }}</td>
-                        <td>
-                            <a href="{% url 'cars:edit' car.pk %}">Edit</a>
-                            <a href="{% url 'cars:move' car.pk %}">Move</a>
-                            <a href="{% url 'cars:delete' car.pk %}">Delete</a>
-                        </td>
+                        <th scope="col">Car</th>
+                        <th scope="col" class="car-id">ID</th>
+                        <th scope="col">Color</th>
+                        <th scope="col" class="row-actions">Actions</th>
                     </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4">
-                            {% if request.GET.color.strip %}
-                                No cars match this color.
-                            {% else %}
-                                No cars yet. Add a car to get started.
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                        <tr>
+                            <th scope="row">{{ car.name }}</th>
+                            <td class="car-id">{{ car.pk }}</td>
+                            <td><span class="car-color" data-color="{{ car.color }}">{{ car.color|capfirst }}</span></td>
+                            <td class="row-actions">
+                                <a href="{% url 'cars:edit' car.pk %}" aria-label="Edit {{ car.name }}">Edit</a>
+                                <a href="{% url 'cars:move' car.pk %}" aria-label="Move {{ car.name }}">Move</a>
+                                <a href="{% url 'cars:delete' car.pk %}" aria-label="Delete {{ car.name }}">Delete</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                {% if selected_color %}
+                                    No cars match this color.
+                                {% else %}
+                                    No cars yet. Add a car to get started.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         {% if is_paginated %}
-            <nav aria-label="Car list pages">
+            <nav class="ledger-pagination" aria-label="Car list pages">
                 {% if page_obj.has_previous %}
-                    <a href="?color={{ request.GET.color|default:''|urlencode }}&amp;page={{ page_obj.previous_page_number }}">
-                        Previous
-                    </a>
+                    <a href="?color={{ selected_color|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
                 {% endif %}
-
                 <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
-
                 {% if page_obj.has_next %}
-                    <a href="?color={{ request.GET.color|default:''|urlencode }}&amp;page={{ page_obj.next_page_number }}">
-                        Next
-                    </a>
+                    <a href="?color={{ selected_color|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
                 {% endif %}
             </nav>
         {% endif %}
-
-    </main>
-</body>
-</html>
+    </section>
+{% endblock %}

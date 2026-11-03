@@ -1,20 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Delete car</title>
-</head>
-<body>
-    <main>
-        <h1>Delete car</h1>
-        <p>Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
+{% extends "cars/base.html" %}
 
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit">Delete car</button>
+{% block title %}Delete car{% endblock %}
+
+{% block content %}
+    <header class="ledger-heading">
+        <div>
+            <h1>Delete car</h1>
+            <p>{{ object.name }} · ID {{ object.pk }}</p>
+        </div>
+    </header>
+
+    <form method="post" class="ledger-panel ledger-form">
+        {% csrf_token %}
+        <p>Delete <strong>{{ object.name }}</strong> from the inventory? This cannot be undone.</p>
+        <div class="form-actions">
+            <button type="submit" class="ledger-primary">Delete car</button>
             <a href="{% url 'cars:list' %}">Cancel</a>
-        </form>
-    </main>
-</body>
-</html>
+        </div>
+    </form>
+{% endblock %}

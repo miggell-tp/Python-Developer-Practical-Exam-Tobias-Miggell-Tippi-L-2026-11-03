@@ -1,20 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Move car</title>
-</head>
-<body>
-    <main>
-        <h1>Move {{ car.name }}</h1>
+{% extends "cars/base.html" %}
 
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Move car</button>
+{% block title %}Move car{% endblock %}
+
+{% block content %}
+    <header class="ledger-heading">
+        <div>
+            <h1>Move car</h1>
+            <p>{{ car.name }} · ID {{ car.pk }}</p>
+        </div>
+    </header>
+
+    <form method="post" class="ledger-panel ledger-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="ledger-primary">Move car</button>
             <a href="{% url 'cars:list' %}">Cancel</a>
-        </form>
-    </main>
-</body>
-</html>
+        </div>
+    </form>
+{% endblock %}

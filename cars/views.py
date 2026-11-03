@@ -28,7 +28,25 @@ class CarListView(ListView):
             cars = cars.filter(color=color)
 
         return cars
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        selected_color = self.request.GET.get("color", "").strip().lower()
 
+        context["selected_color"] = selected_color
+        context["quick_filters"] = [
+            {
+                "label": label,
+                "value": color,
+                "count": Car.objects.filter(color=color).count(),
+            }
+            for label, color in (
+                ("Blue", "blue"),
+                ("Red", "red"),
+                ("Silver", "silver"),
+            )
+        ]
+        return context
 
 class CarCreateView(CreateView):
     model = Car
