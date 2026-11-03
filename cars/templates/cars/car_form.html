@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if object %}Edit car{% else %}Add car{% endif %}</title>
+</head>
+<body>
+    <main>
+        <h1>{% if object %}Edit car{% else %}Add car{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save car</button>
+            <a href="{% url 'cars:list' %}">Cancel</a>
+        </form>
+    </main>
+</body>
+</html>

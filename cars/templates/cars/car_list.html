@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Car Inventory</title>
+</head>
+<body>
+    <main>
+        <h1>Car Inventory</h1>
+        <p><a href="{% url 'cars:add' %}">Add car</a></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Car</th>
+                    <th scope="col">Color</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for car in cars %}
+                    <tr>
+                        <th scope="row">{{ car.name }}</th>
+                        <td>{{ car.color|capfirst }}</td>
+                        <td>
+                            <a href="{% url 'cars:edit' car.pk %}">Edit</a>
+                            <a href="{% url 'cars:delete' car.pk %}">Delete</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3">No cars yet. Add a car to get started.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>
