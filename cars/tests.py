@@ -51,10 +51,10 @@ class CarPageTests(TestCase):
     def setUp(self):
         self.car = Car.objects.create(name="Car D", color="blue", order_key=100)
 
-    def test_add_car_normalizes_color_and_appends(self):
+    def test_add_car_saves_selected_color_and_appends(self):
         response = self.client.post(
             reverse("cars:add"),
-            {"name": "Car B", "color": " Red "},
+            {"name": "Car B", "color": "red"},
         )
 
         self.assertRedirects(response, reverse("cars:list"))
@@ -70,17 +70,27 @@ class CarPageTests(TestCase):
 
         self.assertFormError(response.context["form"], "name", "This field is required.")
         self.assertEqual(Car.objects.count(), 1)
+        
+    def test_add_rejects_an_unsupported_color(self):
+        response = self.client.post(
+            reverse("cars:add"),
+            {"name": "Car B", "color": "banana"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("color", response.context["form"].errors)
+        self.assertEqual(Car.objects.count(), 1)
 
     def test_edit_preserves_order_key(self):
         response = self.client.post(
             reverse("cars:edit", args=[self.car.pk]),
-            {"name": "Car D updated", "color": "green"},
+            {"name": "Car D updated", "color": "white"},
         )
 
         self.assertRedirects(response, reverse("cars:list"))
         self.car.refresh_from_db()
         self.assertEqual(self.car.name, "Car D updated")
-        self.assertEqual(self.car.color, "green")
+        self.assertEqual(self.car.color, "white")
         self.assertEqual(self.car.order_key, 100)
 
     def test_delete_requires_a_post(self):

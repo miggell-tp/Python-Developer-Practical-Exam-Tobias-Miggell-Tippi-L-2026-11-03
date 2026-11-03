@@ -44,6 +44,8 @@ class CarListView(ListView):
                 ("Blue", "blue"),
                 ("Red", "red"),
                 ("Silver", "silver"),
+                ("White", "white"),
+                ("Black", "black"),
             )
         ]
         return context

@@ -50,7 +50,7 @@ The inventory uses one application table with one row per car. It has no foreign
 - **2NF** — Both candidate keys, `id` and `order_key`, are single columns, so there are no partial dependencies.
 - **3NF** — `name` and `color` depend on the car’s key. Neither determines the other. The dependencies are `id → name, color, order_key` and `order_key → id, name, color`.
 
-I kept `color` as text because the app only needs a color name for display and filtering. The form trims whitespace and stores it in lowercase. Repeating `blue` across several rows simply records that several cars are blue. If colors had shared details such as paint codes, I’d put those in a `Color` table and let many cars reference one color.
+I kept `color` as text because the app only needs a color name for display and filtering. The add and edit forms offer five colors: Blue, Red, Silver, White, and Black. Django rejects any other value submitted through those forms. Repeating `blue` across several rows simply records that several cars are blue. If colors had shared details such as paint codes, I’d put those in a `Color` table and let many cars reference one color.
 
 ## Run the checks
 
@@ -59,4 +59,4 @@ I kept `color` as text because the app only needs a color name for display and f
 .\.venv\Scripts\python.exe manage.py test
 ```
 
-The 12 tests cover CRUD, form validation, missing records, filtered pagination, and ordering, including what happens when a gap runs out. Django runs them against a separate test database.
+The 13 tests cover CRUD, form validation, missing records, filtered pagination, and ordering, including what happens when a gap runs out. Django runs them against a separate test database.

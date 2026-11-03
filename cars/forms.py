@@ -3,12 +3,20 @@ from django import forms
 from .models import Car
 
 class CarForm(forms.ModelForm):
+    color = forms.ChoiceField(
+        choices=[
+            ("", "Select a color"),
+            ("blue", "Blue"),
+            ("red", "Red"),
+            ("silver", "Silver"),
+            ("white", "White"),
+            ("black", "Black"),
+        ]
+    )
+
     class Meta:
         model = Car
         fields = ["name", "color"]
-
-    def clean_color(self):
-        return self.cleaned_data["color"].lower()
     
 class CarMoveForm(forms.Form):
     before_id = forms.IntegerField(
